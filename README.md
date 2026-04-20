@@ -1,49 +1,72 @@
-# Oculomotor-Kinematic Analysis Pipeline
+# Oculomotor-Kinematic Analysis Toolset
 
-[![MATLAB](https://shields.io)](https://mathworks.com)
-[![License](https://shields.io)](LICENSE)
+[![MATLAB](https://shields.io)](https://www.mathworks.com)
+[![License](https://shields.io)](https://opensource.org)
 
-This pipeline provides a robust framework for processing and analyzing eye movement data. It is specifically designed to remove artifacts, improve the **Signal-to-Noise Ratio (SNR)**, and quantify kinematic parameters from raw horizontal/vertical ocular responses.
+A high-performance, modular MATLAB pipeline designed for the end-to-end processing of oculomotor kinematic data. This toolset automates the transition from noisy raw recordings to publication-quality statistical insights by integrating advanced signal filtering, multi-stage kinematic validation, and automated batch visualization.
 
-## 📌 Overview
-Raw eye movement data (ipsilateral/contralateral) often contains significant noise. This Matlab-based pipeline automates the extraction, filtering, and validation of eye movement segments to ensure high-quality data for subsequent analysis.
+## 📌 Project Overview
+Oculomotor research often grapples with low Signal-to-Noise Ratios (SNR) due to blinks, saccades, and physiological artifacts. This pipeline addresses these challenges by implementing a standardized workflow that ensures data integrity through rigorous artifact rejection and baseline normalization.
 
-## 🛠 Workflow & Methodology
-
-The core logic is implemented in `main.m`, following a 6-step rigorous processing flow:
-
-1.  **Segment Extraction**: Isolates points of interest from `.BR` files.
-2.  **Primary Filtering**: Applies a 51st-order FIR low-pass filter ($f_c = 125\text{Hz}$) with a **Hamming window**. Zero-phase digital filtering is used to eliminate group delay.
-3.  **Velocity Validation**: Multi-stage thresholding across different periods:
-    *   **$\alpha$ period (Pre-pulse)**: $< 300^\circ/s$
-    *   **During pulse**: $< 600^\circ/s$ (Ipsi) / $300^\circ/s$ (Contra)
-    *   **$\omega$ period (Post-pulse)**: $< 800^\circ/s$ (Saccade limit)
-    *   **Directional Check**: Positive velocity must be $< 100^\circ/s$ to ensure correct movement direction.
-4.  **Position Check & Normalization**:
-    *   Removes segments where $\alpha$ period position exceeds $45^\circ$.
-    *   **Baseline Correction**: Calculates the mean position 20ms prior to pulse onset to set the start point to $0^\circ$.
-5.  **Secondary Filtering**: Final smoothing using a $75\text{Hz}$ low-pass filter (Ref: *Van Horn et al., 2013*).
-6.  **Reliability Filtering**: Only `.BR` files with $>5$ valid trials are retained.
-
-## ⚙️ Parameter Configuration (Structure `p`)
-
-The pipeline is controlled via a structure variable `p`. Below are the key parameters:
+## 📂 Modular Architecture
+The repository follows a decoupled software design to allow for easy maintenance and expansion of individual algorithms:
+```text
+.
+├── main.m                 # Central Entry Point (Execution Script)
+├── functions/             # Core Algorithm Modules
+│   ├── pipeline.m         # Workflow Coordinator (with try-catch robustness)
+│   ├── extract_segments.m # Data parsing & Boundary Protection
+│   ├── freq_filter.m      # Zero-phase FIR Filtering engine
+│   ├── position_filter.m  # Baseline Correction & Offset Removal
+│   ├── velocity_filter.m  # Multi-period Velocity Validation
+│   ├── post_process.m     # Statistical Analytics (Mean & 95% CI)
+│   └── plot_session_results.m # High-Resolution Batch Visualization Engine
+└── README.md
+🛠 Workflow & Methodology
+The toolset follows a 6-step rigorous processing flow:
+Segment Extraction: Isolates points of interest from raw files using customizable pre/post buffers with index boundary protection.
+Primary Filtering: Applies a 51st-order FIR low-pass filter (
 
 
-| Parameter | Default | Description |
-| :--- | :--- | :--- |
-| `p.fs` | 1000 | Sampling frequency (Hz) |
-| `p.cf1` | 125 | Initial low-pass cutoff (Hz) |
-| `p.cf2` | 75 | Post-processing cutoff (Hz) |
-| `p.prebuffer` | 100 | $\alpha$ period length (ms) |
-| `p.postbuffer` | 150 | $\omega$ period length (ms) |
-| `p.threshs` | `[45, 300, ...]` | Array of position and velocity thresholds |
+) using a Hamming window. Zero-phase digital filtering is utilized to eliminate group delay.
+Kinematic Validation: Implements multi-stage thresholding across specific trial phases:
 
-## 📊 Visualization
-The repository includes dedicated scripts for data inspection:
-*   `plotting.m`: Visualizes EHP/EHV for **ipsilateral** responses.
-*   `plotting_contra.m`: Visualizes EHP/EHV for **contralateral** responses.
-*   **Statistical Output**: Includes mean responses with a **95% t-confidence interval**.
+ period (Pre-pulse): Absolute velocity 
 
-## 📖 References
-> Van Horn MR, Waitzman DM, Cullen KE. *Vergence neurons identified in the rostral superior colliculus code smooth eye movements in 3D space.*
+.
+During pulse: 
+
+ (Ipsi) / 
+
+ (Contra) to filter blinks.
+
+ period (Post-pulse): 
+
+ (Saccade limit).
+Baseline Correction: Automatically calculates the mean position 20ms prior to pulse onset to eliminate sensor drift (
+ alignment).
+Secondary Smoothing: Final refinement using a 
+
+ low-pass filter to enhance SNR for fine-grained analysis (Ref: Cullen et al., 2013).
+Reliability Filtering: Enforces a minimum trial threshold (default 
+) to ensure the statistical significance of each session.
+⚙️ Parameter Configuration (Structure p)
+Centralized configuration in main.m allows for rapid adaptation to different experimental protocols:
+Parameter	Default	Description
+p.fs	1000	Sampling frequency (Hz)
+p.min_trials	5	Minimum valid trials required per session
+p.threshs	[45, 300, ...]	Global threshold array (Position/Velocity)
+p.plot.x_lim	[-50, 150]	Standardized X-axis for plotting (ms)
+p.plot.y_pos	[-10, 10]	Y-axis range for Position subplots (deg)
+p.plot.y_vel	[-200, 700]	Y-axis range for Velocity subplots (deg/s)
+📊 Visualization & Export
+Batch PNG Generation: Automatically exports 300 DPI high-resolution PNGs for every valid session.
+Statistical Overlays: Simultaneously visualizes individual trial trajectories, ensemble averages, and shaded 95% t-confidence intervals (CI).
+Structured I/O: Analysis results (.mat) and figures are organized into an auto-generated results/ directory for seamless data management.
+🚀 How to Use
+Clone the Repository: git clone https://github.com
+Run Main: Open main.m in MATLAB and press F5.
+Select Data: An interactive dialog will prompt you to select your data folder.
+Review: Check the results/ folder for processed data and visualization reports.
+📖 References
+Van Horn MR, Waitzman DM, Cullen KE. Vergence neurons identified in the rostral superior colliculus code smooth eye movements in 3D space. J Neurosci. 2013.
