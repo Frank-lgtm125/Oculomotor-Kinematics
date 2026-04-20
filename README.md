@@ -1,6 +1,7 @@
+markdown
 # Oculomotor-Kinematic Analysis Toolset
 
-[![MATLAB](https://shields.io)](https://www.mathworks.com)
+[![MATLAB](https://shields.io)](https://mathworks.com)
 [![License](https://shields.io)](https://opensource.org)
 
 A high-performance, modular MATLAB pipeline designed for the end-to-end processing of oculomotor kinematic data. This toolset automates the transition from noisy raw recordings to publication-quality statistical insights by integrating advanced signal filtering, multi-stage kinematic validation, and automated batch visualization.
@@ -22,6 +23,7 @@ The repository follows a decoupled software design to allow for easy maintenance
 │   ├── post_process.m     # Statistical Analytics (Mean & 95% CI)
 │   └── plot_session_results.m # High-Resolution Batch Visualization Engine
 └── README.md
+请谨慎使用此类代码。
 🛠 Workflow & Methodology
 The toolset follows a 6-step rigorous processing flow:
 Segment Extraction: Isolates points of interest from raw files using customizable pre/post buffers with index boundary protection.
